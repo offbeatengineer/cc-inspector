@@ -1,9 +1,9 @@
-# claude-reader
+# CC Inspector
 
 Browse your local Claude Code session history through a polished, private web UI.
 
 Claude Code stores every session as a JSONL file under `~/.claude/projects/`.
-`claude-reader` reads those files directly and serves them through a local-only
+`cc-inspector` reads those files directly and serves them through a local-only
 HTTP server so you can scroll through past conversations — thinking blocks, tool
 calls, sub-agents, and all.
 
@@ -17,21 +17,21 @@ calls, sub-agents, and all.
 
 ```sh
 # Once the Homebrew tap is published:
-brew install zhiyand/tap/claude-reader
+brew install offbeatengineer/tap/cc-inspector
 
 # Or install from source:
-go install github.com/zhiyand/claude-reader/cmd/claude-reader@latest
+go install github.com/offbeatengineer/cc-inspector/cmd/cc-inspector@latest
 ```
 
 ## Usage
 
 ```sh
-claude-reader                            # start server, print URL, open browser
-claude-reader --port 8787                # pin a port
-claude-reader --host 127.0.0.1 --port 0  # default — OS-assigned port
-claude-reader --claude-dir /path/to/.claude
-claude-reader --open=false               # don't open the browser
-claude-reader --version
+cc-inspector                            # start server, print URL, open browser
+cc-inspector --port 8787                # pin a port
+cc-inspector --host 127.0.0.1 --port 0  # default — OS-assigned port
+cc-inspector --claude-dir /path/to/.claude
+cc-inspector --open=false               # don't open the browser
+cc-inspector --version
 ```
 
 ## Features
@@ -84,7 +84,7 @@ and externalized tool outputs replaced with `external` markers pointing to the
 ```sh
 just build-web   # build the SPA and copy it into internal/web/dist
 just build       # build the release binary (depends on build-web)
-just run         # go run ./cmd/claude-reader against ~/.claude
+just run         # go run ./cmd/cc-inspector against ~/.claude
 
 # HMR loop — two panes:
 just dev-web     # Vite dev server on :5173 (proxies /api to :8787)
@@ -99,7 +99,7 @@ Releases are cut by pushing a `v*` tag. `.github/workflows/release.yml` triggers
 1. builds the SPA,
 2. cross-compiles for `darwin-{amd64,arm64}` and `linux-{amd64,arm64}`,
 3. creates a GitHub release with checksums,
-4. auto-PRs an updated formula to `zhiyand/homebrew-tap`.
+4. auto-PRs an updated formula to `offbeatengineer/homebrew-tap`.
 
 ## License
 

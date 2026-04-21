@@ -13,10 +13,10 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/zhiyand/claude-reader/internal/config"
-	"github.com/zhiyand/claude-reader/internal/server"
-	"github.com/zhiyand/claude-reader/internal/version"
-	"github.com/zhiyand/claude-reader/internal/web"
+	"github.com/offbeatengineer/cc-inspector/internal/config"
+	"github.com/offbeatengineer/cc-inspector/internal/server"
+	"github.com/offbeatengineer/cc-inspector/internal/version"
+	"github.com/offbeatengineer/cc-inspector/internal/web"
 )
 
 func main() {
@@ -29,14 +29,14 @@ func main() {
 
 	if *showVer {
 		info := version.Info()
-		fmt.Printf("claude-reader %s (commit %s, built %s)\n", info.Version, info.Commit, info.Date)
+		fmt.Printf("cc-inspector %s (commit %s, built %s)\n", info.Version, info.Commit, info.Date)
 		return
 	}
 
 	cfg, err := config.Resolve(*claudeDir)
 	if errors.Is(err, config.ErrNoProjects) {
 		fmt.Fprintf(os.Stderr,
-			"claude-reader: no Claude Code sessions found at %s\n"+
+			"cc-inspector: no Claude Code sessions found at %s\n"+
 				"If Claude Code stores data elsewhere, pass --claude-dir /path/to/.claude\n",
 			cfg.ProjectsDir)
 		os.Exit(0)
@@ -54,7 +54,7 @@ func main() {
 
 	onListen := func(addr string) {
 		url := fmt.Sprintf("http://%s", addr)
-		fmt.Printf("claude-reader listening on %s\n", url)
+		fmt.Printf("cc-inspector listening on %s\n", url)
 		if *open {
 			go openBrowser(url)
 		}

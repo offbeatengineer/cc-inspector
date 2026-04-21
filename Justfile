@@ -3,7 +3,7 @@ default:
 
 # Run the production-style binary (serves embedded SPA) against the real ~/.claude.
 run *args:
-    go run ./cmd/claude-reader {{args}}
+    go run ./cmd/cc-inspector {{args}}
 
 # Dev loop: Vite HMR + Go server with the `dev` build tag (proxies to :5173).
 # Run `just dev-web` in one pane and `just dev-go` in another.
@@ -16,7 +16,7 @@ dev-web:
 
 # Go server in dev mode (proxies non-/api to Vite on :5173).
 dev-go *args:
-    go run -tags dev ./cmd/claude-reader --port 8787 --open=false {{args}}
+    go run -tags dev ./cmd/cc-inspector --port 8787 --open=false {{args}}
 
 # Install web deps (idempotent).
 web-install:
@@ -31,7 +31,7 @@ build-web:
 
 # Build the single-binary release binary.
 build: build-web
-    go build -o bin/claude-reader ./cmd/claude-reader
+    go build -o bin/cc-inspector ./cmd/cc-inspector
 
 # Static analysis.
 vet:

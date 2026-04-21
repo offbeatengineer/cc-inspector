@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/zhiyand/claude-reader/internal/scanner"
-	"github.com/zhiyand/claude-reader/internal/session"
+	"github.com/offbeatengineer/cc-inspector/internal/scanner"
+	"github.com/offbeatengineer/cc-inspector/internal/session"
 )
 
 func handleListSessions(deps Deps) http.Handler {

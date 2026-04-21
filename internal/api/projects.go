@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/zhiyand/claude-reader/internal/scanner"
+	"github.com/offbeatengineer/cc-inspector/internal/scanner"
 )
 
 func handleListProjects(deps Deps) http.Handler {

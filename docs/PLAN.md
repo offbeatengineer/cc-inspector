@@ -1,10 +1,10 @@
-# claude-reader — Implementation Plan
+# cc-inspector — Implementation Plan
 
 ## Context
 
 **Why this exists.** Claude Code keeps every session as a JSONL file under `~/.claude/projects/<encoded-project>/<session-uuid>.jsonl`. These files contain genuinely valuable context — what you tried, what worked, thinking blocks, tool calls — but they're unreadable in raw form. You want a local, private, polished way to browse your own session history.
 
-**What we're building.** `claude-reader` — a single static binary that, when launched, starts a local web server and opens a browser to a slick session-browsing UI. No cloud, no account, no telemetry. Distributed via Homebrew.
+**What we're building.** `cc-inspector` — a single static binary that, when launched, starts a local web server and opens a browser to a slick session-browsing UI. No cloud, no account, no telemetry. Distributed via Homebrew.
 
 **Why a binary (not a web app or Electron).** Users install once with `brew install`, get a `~10 MB` executable, and run it. No Node runtime on their machine, no Docker, no signed DMG. Homebrew already solves the update path.
 
@@ -32,7 +32,7 @@
 Three layers of laziness:
 
 1. **Directory listing** — `os.ReadDir(~/.claude/projects)` + per-file `os.Stat`. No parsing. <10 ms for typical machine.
-2. **Session metadata cache** — `{firstPrompt, messageCount, startedAt, lastActivity, cwd, gitBranch}` keyed by `{path, mtime, size}`. Persisted to `<claude-dir>/.cache/claude-reader/meta.json`. Extraction streams the full file with `json.Decoder` (must reach EOF for last timestamp). If `sessions-index.json` exists and is fresh, trust it.
+2. **Session metadata cache** — `{firstPrompt, messageCount, startedAt, lastActivity, cwd, gitBranch}` keyed by `{path, mtime, size}`. Persisted to `<claude-dir>/.cache/cc-inspector/meta.json`. Extraction streams the full file with `json.Decoder` (must reach EOF for last timestamp). If `sessions-index.json` exists and is fresh, trust it.
 3. **Full session parse** — on demand when user opens a session. Streaming parse, tolerant to unknown types/blocks (yields `{type: "unknown", raw: ...}` instead of failing). Response cached in browser via TanStack Query + ETag = `mtime+size`.
 
 **No SQLite.** Scale is ≤2000 sessions/user; a JSON cache is sufficient and keeps the binary lean.
@@ -128,8 +128,8 @@ Day one. System preference + toggle. Tailwind `dark:` classes.
 ## Project structure
 
 ```
-claude-reader/
-├── cmd/claude-reader/main.go        # flags, bootstrap, --open
+cc-inspector/
+├── cmd/cc-inspector/main.go        # flags, bootstrap, --open
 ├── internal/
 │   ├── config/                      # resolve claude-dir, cache-dir
 │   ├── scanner/                     # projects, sessions, mtime cache
@@ -163,7 +163,7 @@ claude-reader/
 └── LICENSE
 ```
 
-**Build**: `just build` → `cd web && pnpm build` → `go build ./cmd/claude-reader`.
+**Build**: `just build` → `cd web && pnpm build` → `go build ./cmd/cc-inspector`.
 **Dev**: `just dev` runs Go server with `dev` build tag (proxies unknown routes to Vite on :5173); frontend HMR works.
 
 ---
@@ -175,7 +175,7 @@ claude-reader/
 `.goreleaser.yaml`:
 - `builds`: single binary, `CGO_ENABLED=0`, targets `darwin-{amd64,arm64}`, `linux-{amd64,arm64}`.
 - ldflags inject `main.version`, `main.commit`, `main.date`.
-- `archives`: `.tar.gz`, name `claude-reader_{{.Os}}_{{.Arch}}.tar.gz`.
+- `archives`: `.tar.gz`, name `cc-inspector_{{.Os}}_{{.Arch}}.tar.gz`.
 - `checksum`: sha256.
 - `brews`: auto-PRs formula to `<user>/homebrew-tap`.
 - `release`: GitHub release with conventional-commit changelog.
@@ -187,7 +187,7 @@ CI: `.github/workflows/release.yml` triggers on `v*` tag → `goreleaser release
 
 Missing `~/.claude/projects/`:
 ```
-claude-reader: no Claude Code sessions found at ~/.claude/projects
+cc-inspector: no Claude Code sessions found at ~/.claude/projects
 If Claude Code stores data elsewhere, pass --claude-dir /path/to/.claude
 ```
 Exit 0 — user-environment issue, not a crash.
@@ -195,8 +195,8 @@ Exit 0 — user-environment issue, not a crash.
 ### Installation path
 
 ```
-brew install <user>/tap/claude-reader
-claude-reader           # starts, prints URL, opens browser
+brew install <user>/tap/cc-inspector
+cc-inspector           # starts, prints URL, opens browser
 ```
 
 ---
@@ -225,16 +225,16 @@ Cross-session FTS (Bleve or SQLite FTS5). SSE+fsnotify live-tail. Export session
 
 ## Critical files (to create)
 
-- `/Users/duanzy/Code/gear/claude-reader/cmd/claude-reader/main.go` — flags, bootstrap, `--open`
-- `/Users/duanzy/Code/gear/claude-reader/internal/session/parse.go` — tolerant streaming JSONL parser
-- `/Users/duanzy/Code/gear/claude-reader/internal/session/subagents.go` — sidechain resolution
-- `/Users/duanzy/Code/gear/claude-reader/internal/session/images.go` — base64 strip + serve
-- `/Users/duanzy/Code/gear/claude-reader/internal/scanner/cache.go` — mtime-keyed meta cache
-- `/Users/duanzy/Code/gear/claude-reader/internal/api/router.go` — stdlib pattern-mux
-- `/Users/duanzy/Code/gear/claude-reader/web/src/components/conversation/MessageCard.tsx` — per-type renderer dispatch
-- `/Users/duanzy/Code/gear/claude-reader/web/src/components/conversation/ToolCall.tsx` — per-tool renderer dispatch
-- `/Users/duanzy/Code/gear/claude-reader/.goreleaser.yaml` — cross-compile + Homebrew tap
-- `/Users/duanzy/Code/gear/claude-reader/embed.go` — SPA embed + SPA fallback handler
+- `/Users/duanzy/Code/gear/cc-inspector/cmd/cc-inspector/main.go` — flags, bootstrap, `--open`
+- `/Users/duanzy/Code/gear/cc-inspector/internal/session/parse.go` — tolerant streaming JSONL parser
+- `/Users/duanzy/Code/gear/cc-inspector/internal/session/subagents.go` — sidechain resolution
+- `/Users/duanzy/Code/gear/cc-inspector/internal/session/images.go` — base64 strip + serve
+- `/Users/duanzy/Code/gear/cc-inspector/internal/scanner/cache.go` — mtime-keyed meta cache
+- `/Users/duanzy/Code/gear/cc-inspector/internal/api/router.go` — stdlib pattern-mux
+- `/Users/duanzy/Code/gear/cc-inspector/web/src/components/conversation/MessageCard.tsx` — per-type renderer dispatch
+- `/Users/duanzy/Code/gear/cc-inspector/web/src/components/conversation/ToolCall.tsx` — per-tool renderer dispatch
+- `/Users/duanzy/Code/gear/cc-inspector/.goreleaser.yaml` — cross-compile + Homebrew tap
+- `/Users/duanzy/Code/gear/cc-inspector/embed.go` — SPA embed + SPA fallback handler
 
 ---
 
@@ -272,8 +272,8 @@ Cross-session FTS (Bleve or SQLite FTS5). SSE+fsnotify live-tail. Export session
 
 **M4 distribution**
 - `git tag v0.1.0 && git push --tags` triggers release. GitHub release has 4 archives + checksums. Homebrew tap PR merged.
-- Clean machine: `brew install <user>/tap/claude-reader && claude-reader` launches successfully.
-- `claude-reader --version` prints baked version/commit/date.
+- Clean machine: `brew install <user>/tap/cc-inspector && cc-inspector` launches successfully.
+- `cc-inspector --version` prints baked version/commit/date.
 
 ---
 

@@ -20,9 +20,9 @@ export function ProjectsSidebar() {
       <div className="px-3 py-2.5 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2 min-w-0">
           <div className="w-5 h-5 rounded bg-accent text-accent-fg text-[10px] font-bold flex items-center justify-center shrink-0">
-            cr
+            cc
           </div>
-          <div className="font-semibold truncate">claude-reader</div>
+          <div className="font-semibold truncate">CC Inspector</div>
         </div>
         <ThemeToggle />
       </div>

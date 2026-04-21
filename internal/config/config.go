@@ -42,7 +42,7 @@ func Resolve(override string) (*Config, error) {
 		return &Config{ClaudeDir: abs, ProjectsDir: projects}, ErrNoProjects
 	}
 
-	cache := filepath.Join(abs, ".cache", "claude-reader")
+	cache := filepath.Join(abs, ".cache", "cc-inspector")
 	if err := os.MkdirAll(cache, 0o755); err != nil {
 		return nil, fmt.Errorf("create cache dir: %w", err)
 	}

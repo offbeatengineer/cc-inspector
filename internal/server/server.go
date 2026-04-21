@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/zhiyand/claude-reader/internal/api"
-	"github.com/zhiyand/claude-reader/internal/config"
-	"github.com/zhiyand/claude-reader/internal/scanner"
+	"github.com/offbeatengineer/cc-inspector/internal/api"
+	"github.com/offbeatengineer/cc-inspector/internal/config"
+	"github.com/offbeatengineer/cc-inspector/internal/scanner"
 )
 
 type Options struct {
@@ -100,7 +100,7 @@ const placeholderHTML = `<!doctype html>
 <html>
   <head>
     <meta charset="utf-8">
-    <title>claude-reader</title>
+    <title>CC Inspector</title>
     <style>
       body { font-family: ui-sans-serif, system-ui; max-width: 640px; margin: 5rem auto; padding: 0 1rem; line-height: 1.5; color: #1f2937; }
       code { background: #f3f4f6; padding: 0.1em 0.4em; border-radius: 4px; }
@@ -108,7 +108,7 @@ const placeholderHTML = `<!doctype html>
     </style>
   </head>
   <body>
-    <h1>claude-reader</h1>
+    <h1>CC Inspector</h1>
     <p>The API is running. The web UI will be embedded here at M2.</p>
     <p>Try the API directly:</p>
     <ul>

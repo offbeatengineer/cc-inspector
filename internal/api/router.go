@@ -3,9 +3,9 @@ package api
 import (
 	"net/http"
 
-	"github.com/zhiyand/claude-reader/internal/config"
-	"github.com/zhiyand/claude-reader/internal/scanner"
-	"github.com/zhiyand/claude-reader/internal/version"
+	"github.com/offbeatengineer/cc-inspector/internal/config"
+	"github.com/offbeatengineer/cc-inspector/internal/scanner"
+	"github.com/offbeatengineer/cc-inspector/internal/version"
 )
 
 // Deps holds dependencies injected into handlers.

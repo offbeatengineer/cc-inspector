@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/zhiyand/claude-reader/internal/session"
+	"github.com/offbeatengineer/cc-inspector/internal/session"
 )
 
 type SessionInfo struct {

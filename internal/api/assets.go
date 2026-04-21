@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/zhiyand/claude-reader/internal/session"
+	"github.com/offbeatengineer/cc-inspector/internal/session"
 )
 
 func handleToolResult(deps Deps) http.Handler {

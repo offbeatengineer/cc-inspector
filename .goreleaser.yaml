@@ -1,6 +1,6 @@
 version: 2
 
-project_name: claude-reader
+project_name: cc-inspector
 
 # Build the web SPA once, before cross-compiling.
 before:
@@ -11,18 +11,18 @@ before:
     - go mod tidy
 
 builds:
-  - id: claude-reader
-    main: ./cmd/claude-reader
-    binary: claude-reader
+  - id: cc-inspector
+    main: ./cmd/cc-inspector
+    binary: cc-inspector
     env:
       - CGO_ENABLED=0
     flags:
       - -trimpath
     ldflags:
       - -s -w
-      - -X github.com/zhiyand/claude-reader/internal/version.version={{.Version}}
-      - -X github.com/zhiyand/claude-reader/internal/version.commit={{.ShortCommit}}
-      - -X github.com/zhiyand/claude-reader/internal/version.date={{.Date}}
+      - -X github.com/offbeatengineer/cc-inspector/internal/version.version={{.Version}}
+      - -X github.com/offbeatengineer/cc-inspector/internal/version.commit={{.ShortCommit}}
+      - -X github.com/offbeatengineer/cc-inspector/internal/version.date={{.Date}}
     goos: [darwin, linux]
     goarch: [amd64, arm64]
 
@@ -57,17 +57,17 @@ release:
   name_template: "v{{ .Version }}"
 
 brews:
-  - name: claude-reader
+  - name: cc-inspector
     # Replace with your actual tap repo before the first tag.
     repository:
-      owner: zhiyand
+      owner: offbeatengineer
       name: homebrew-tap
       branch: main
     directory: Formula
-    homepage: "https://github.com/zhiyand/claude-reader"
+    homepage: "https://github.com/offbeatengineer/cc-inspector"
     description: "Browse your local Claude Code session history through a polished, private web UI."
     license: "MIT"
     install: |
-      bin.install "claude-reader"
+      bin.install "cc-inspector"
     test: |
-      system "#{bin}/claude-reader", "--version"
+      system "#{bin}/cc-inspector", "--version"
