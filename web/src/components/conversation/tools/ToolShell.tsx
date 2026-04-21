@@ -40,7 +40,7 @@ export function ToolShell({
     >
       <button
         type="button"
-        className="w-full flex items-center gap-2 px-2.5 py-1.5 text-left"
+        className="w-full flex items-center gap-2 px-2.5 py-1.5 text-left cursor-pointer hover:bg-surface-2/60 rounded"
         onClick={() => setOpen(!open)}
       >
         <ChevronRight
