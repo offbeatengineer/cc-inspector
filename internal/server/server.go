@@ -15,11 +15,11 @@ import (
 )
 
 type Options struct {
-	Host       string
-	Port       int
-	Config     *config.Config
-	StaticFS   http.Handler // SPA assets handler; nil = placeholder index
-	OnListen   func(addr string)
+	Host     string
+	Port     int
+	Config   *config.Config
+	Static   http.Handler // SPA assets handler; required
+	OnListen func(addr string)
 }
 
 // Run starts the HTTP server and blocks until ctx is canceled.
@@ -33,8 +33,8 @@ func Run(ctx context.Context, opts Options) error {
 	mux := http.NewServeMux()
 	api.Register(mux, api.Deps{Config: opts.Config, Cache: cache})
 
-	if opts.StaticFS != nil {
-		mux.Handle("/", opts.StaticFS)
+	if opts.Static != nil {
+		mux.Handle("/", opts.Static)
 	} else {
 		mux.Handle("/", http.HandlerFunc(placeholderIndex))
 	}

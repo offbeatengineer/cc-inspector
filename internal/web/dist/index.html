@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>claude-reader</title>
+    <script>
+      (() => {
+        const stored = localStorage.getItem("cr:theme");
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const dark = stored ? stored === "dark" : prefersDark;
+        if (dark) document.documentElement.classList.add("dark");
+      })();
+    </script>
+    <script type="module" crossorigin src="/assets/index-DP9pOwVA.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-Bc8GMNqn.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

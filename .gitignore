@@ -3,6 +3,12 @@
 /bin/
 web/dist/
 web/node_modules/
+web/*.tsbuildinfo
 .DS_Store
 *.log
 .cache/
+
+# The SPA is re-populated by `just build-web`. Keep a placeholder index.html
+# committed so `go build` works in a fresh checkout; ignore everything else.
+internal/web/dist/*
+!internal/web/dist/index.html

@@ -16,6 +16,7 @@ import (
 	"github.com/zhiyand/claude-reader/internal/config"
 	"github.com/zhiyand/claude-reader/internal/server"
 	"github.com/zhiyand/claude-reader/internal/version"
+	"github.com/zhiyand/claude-reader/internal/web"
 )
 
 func main() {
@@ -59,10 +60,16 @@ func main() {
 		}
 	}
 
+	static, err := web.Handler()
+	if err != nil {
+		log.Fatalf("static: %v", err)
+	}
+
 	if err := server.Run(ctx, server.Options{
 		Host:     *host,
 		Port:     *port,
 		Config:   cfg,
+		Static:   static,
 		OnListen: onListen,
 	}); err != nil {
 		log.Fatalf("server: %v", err)
