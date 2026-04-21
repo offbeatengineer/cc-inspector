@@ -10,6 +10,7 @@ interface UIState {
   searchOpen: boolean;
   helpOpen: boolean;
   lightboxUrl: string | null;
+  scrollToAnchor: ((anchorId: string) => void) | null;
 
   setSidebarWidth: (n: number) => void;
   setSessionsWidth: (n: number) => void;
@@ -21,6 +22,7 @@ interface UIState {
   setSearchOpen: (v: boolean) => void;
   setHelpOpen: (v: boolean) => void;
   setLightbox: (url: string | null) => void;
+  setScrollToAnchor: (fn: ((anchorId: string) => void) | null) => void;
 }
 
 const LS = {
@@ -61,13 +63,14 @@ function readTheme(): "light" | "dark" | "auto" {
 export const useUI = create<UIState>((set) => ({
   sidebarWidth: readNumber(LS.sidebar, 220),
   sessionsWidth: readNumber(LS.sessions, 320),
-  inspectorOpen: readBool(LS.inspectorOpen, false),
+  inspectorOpen: readBool(LS.inspectorOpen, true),
   inspectorWidth: readNumber(LS.inspectorWidth, 300),
   theme: readTheme(),
   paletteOpen: false,
   searchOpen: false,
   helpOpen: false,
   lightboxUrl: null,
+  scrollToAnchor: null,
 
   setSidebarWidth: (n) => {
     localStorage.setItem(LS.sidebar, String(n));
@@ -100,6 +103,7 @@ export const useUI = create<UIState>((set) => ({
   setSearchOpen: (v) => set({ searchOpen: v }),
   setHelpOpen: (v) => set({ helpOpen: v }),
   setLightbox: (url) => set({ lightboxUrl: url }),
+  setScrollToAnchor: (fn) => set({ scrollToAnchor: fn }),
 }));
 
 export function applyTheme(t: "light" | "dark" | "auto") {

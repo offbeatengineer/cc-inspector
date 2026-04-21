@@ -23,6 +23,7 @@ export function Conversation({
 }) {
   const inspectorOpen = useUI((s) => s.inspectorOpen);
   const toggleInspector = useUI((s) => s.toggleInspector);
+  const setScrollToAnchor = useUI((s) => s.setScrollToAnchor);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const searchOpen = useUI((s) => s.searchOpen);
   const setSearchOpen = useUI((s) => s.setSearchOpen);
@@ -48,6 +49,34 @@ export function Conversation({
     setSearch("");
     setActiveHit(0);
   }, [sessionId, virtualizer]);
+
+  useEffect(() => {
+    const handler = (anchorId: string) => {
+      const idx = items.findIndex((it) => it.anchorId === anchorId);
+      if (idx < 0) return;
+      setFocusIndex(idx);
+      virtualizer.scrollToIndex(idx, { align: "center" });
+      const flash = (attempts: number) => {
+        const el = document.getElementById(anchorId);
+        if (!el) {
+          if (attempts > 0)
+            requestAnimationFrame(() => flash(attempts - 1));
+          return;
+        }
+        el.classList.remove("prompt-flash");
+        void el.offsetWidth;
+        el.classList.add("prompt-flash");
+        const onEnd = () => {
+          el.classList.remove("prompt-flash");
+          el.removeEventListener("animationend", onEnd);
+        };
+        el.addEventListener("animationend", onEnd);
+      };
+      requestAnimationFrame(() => flash(30));
+    };
+    setScrollToAnchor(handler);
+    return () => setScrollToAnchor(null);
+  }, [items, virtualizer, setScrollToAnchor]);
 
   const hitNodesRef = useRef<HTMLElement[]>([]);
   const recomputeHits = () => {

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import type { Session, Usage } from "../../lib/types";
 import { formatAbsolute, formatBytes, formatNumber, truncate } from "../../lib/format";
 import { groupMessages, jumpList } from "../conversation/groupMessages";
+import { useUI } from "../../stores/ui";
 
 export function Inspector({ session }: { session: Session }) {
   const { meta } = session;
@@ -12,6 +13,7 @@ export function Inspector({ session }: { session: Session }) {
   const totals = useMemo(() => sumUsage(session), [session]);
 
   const subagents = Object.values(session.subagentSummaries ?? {});
+  const scrollToAnchor = useUI((s) => s.scrollToAnchor);
 
   return (
     <div className="p-3 space-y-5 text-[12.5px]">
@@ -74,10 +76,7 @@ export function Inspector({ session }: { session: Session }) {
             <li key={j.key}>
               <button
                 type="button"
-                onClick={() => {
-                  const el = document.getElementById(j.anchorId);
-                  if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
-                }}
+                onClick={() => scrollToAnchor?.(j.anchorId)}
                 className="block w-full text-left hover:bg-surface-2 rounded px-2 py-1 text-[12px] truncate"
                 title={j.text}
               >
