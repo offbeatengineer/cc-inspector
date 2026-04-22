@@ -5,8 +5,8 @@ project_name: cc-inspector
 # Build the web SPA once, before cross-compiling.
 before:
   hooks:
-    - cd web && npm ci
-    - cd web && npm run build
+    - sh -c 'cd web && npm ci'
+    - sh -c 'cd web && npm run build'
     - sh -c 'rm -rf internal/web/dist && mkdir -p internal/web/dist && cp -r web/dist/* internal/web/dist/'
     - go mod tidy
 
