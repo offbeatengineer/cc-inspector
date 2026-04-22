@@ -58,11 +58,11 @@ release:
 
 brews:
   - name: cc-inspector
-    # Replace with your actual tap repo before the first tag.
     repository:
       owner: offbeatengineer
       name: homebrew-tap
       branch: main
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     directory: Formula
     homepage: "https://github.com/offbeatengineer/cc-inspector"
     description: "Browse your local Claude Code session history through a polished, private web UI."

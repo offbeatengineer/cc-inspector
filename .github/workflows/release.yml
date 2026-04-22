@@ -26,16 +26,6 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
 
-      - name: debug tap token presence
-        env:
-          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
-        run: |
-          if [ -n "$HOMEBREW_TAP_GITHUB_TOKEN" ]; then
-            echo "token present, length=${#HOMEBREW_TAP_GITHUB_TOKEN}"
-          else
-            echo "token NOT set — check org secret Repository access and PAT policy"
-          fi
-
       - name: goreleaser
         uses: goreleaser/goreleaser-action@v6
         with:
