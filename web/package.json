@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:standalone": "tsc -b && vite build --config vite.standalone.config.ts",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit"
   },
@@ -31,6 +32,7 @@
     "@vitejs/plugin-react": "^4.3.2",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.6.2",
-    "vite": "^5.4.8"
+    "vite": "^5.4.8",
+    "vite-plugin-singlefile": "^2.3.3"
   }
 }

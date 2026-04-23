@@ -29,8 +29,15 @@ build-web:
     mkdir -p internal/web/dist
     cp -r web/dist/* internal/web/dist/
 
+# Compile the standalone single-file export template and copy it for embedding.
+build-web-standalone:
+    cd web && npm install && npm run build:standalone
+    rm -rf internal/web/dist-standalone
+    mkdir -p internal/web/dist-standalone
+    cp web/dist-standalone/standalone.html internal/web/dist-standalone/standalone.html
+
 # Build the single-binary release binary.
-build: build-web
+build: build-web build-web-standalone
     go build -o bin/cc-inspector ./cmd/cc-inspector
 
 # Static analysis.
@@ -47,6 +54,7 @@ tidy:
 
 # Clean build outputs.
 clean:
-    rm -rf bin web/dist web/node_modules internal/web/dist/*
-    mkdir -p internal/web/dist
+    rm -rf bin web/dist web/dist-standalone web/node_modules internal/web/dist/* internal/web/dist-standalone/*
+    mkdir -p internal/web/dist internal/web/dist-standalone
     echo '<!doctype html><html><body><p>Run <code>just build-web</code>.</p></body></html>' > internal/web/dist/index.html
+    echo '<!doctype html><html><body>Run <code>just build-web-standalone</code>. __EXPORT_PAYLOAD__</body></html>' > internal/web/dist-standalone/standalone.html

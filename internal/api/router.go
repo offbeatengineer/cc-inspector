@@ -29,4 +29,5 @@ func Register(mux *http.ServeMux, deps Deps) {
 	mux.Handle("GET /api/projects/{project}/sessions/{session}/subagents/{agent}", handleGetSubagent(deps))
 	mux.Handle("GET /api/projects/{project}/sessions/{session}/tool-results/{file}", handleToolResult(deps))
 	mux.Handle("GET /api/projects/{project}/sessions/{session}/images/{uuid}/{index}", handleImage(deps))
+	mux.Handle("GET /api/projects/{project}/sessions/{session}/export", handleExportSession(deps))
 }

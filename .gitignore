@@ -2,6 +2,7 @@
 /dist/
 /bin/
 web/dist/
+web/dist-standalone/
 web/node_modules/
 web/*.tsbuildinfo
 .DS_Store
@@ -12,3 +13,8 @@ web/*.tsbuildinfo
 # committed so `go build` works in a fresh checkout; ignore everything else.
 internal/web/dist/*
 !internal/web/dist/index.html
+
+# Same pattern for the single-file export template — real bundle comes from
+# `just build-web-standalone`; a stub keeps `go build` working.
+internal/web/dist-standalone/*
+!internal/web/dist-standalone/standalone.html

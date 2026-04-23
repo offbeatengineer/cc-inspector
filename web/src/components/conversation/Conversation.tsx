@@ -1,6 +1,6 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { PanelRight, PanelRightClose, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { PanelRight, PanelRightClose, ChevronLeft, ChevronRight, Download, Search } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 
@@ -17,10 +17,14 @@ export function Conversation({
   session,
   projectDir,
   sessionId,
+  standalone = false,
+  onDownloadJsonl,
 }: {
   session: Session;
   projectDir: string;
   sessionId: string;
+  standalone?: boolean;
+  onDownloadJsonl?: () => void;
 }) {
   const inspectorOpen = useUI((s) => s.inspectorOpen);
   const toggleInspector = useUI((s) => s.toggleInspector);
@@ -214,57 +218,21 @@ export function Conversation({
         }
         lastKeyRef.current = "g";
         setTimeout(() => (lastKeyRef.current = ""), 600);
-      } else if (e.key === "i") {
+      } else if (e.key === "i" && !standalone) {
         toggleInspector();
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [focusIndex, items.length, virtualizer, setSearchOpen, toggleInspector]);
+  }, [focusIndex, items.length, virtualizer, setSearchOpen, toggleInspector, standalone]);
 
   const lastKeyRef = useRef("");
 
-  // Neighbor sessions for [ / ]
-  const sessionsQ = useQuery({
-    queryKey: qk.sessions(projectDir),
-    queryFn: () => api.listSessions(projectDir),
-  });
-  const navigate = useNavigate();
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      const target = e.target as HTMLElement | null;
-      const inInput =
-        target &&
-        (target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA" ||
-          target.isContentEditable);
-      if (inInput) return;
-      const list = sessionsQ.data;
-      if (!list) return;
-      const idx = list.findIndex((s) => s.id === sessionId);
-      if (idx === -1) return;
-      if (e.key === "[") {
-        const prev = list[idx + 1];
-        if (prev)
-          navigate({
-            to: "/p/$projectDir/s/$sessionId",
-            params: { projectDir, sessionId: prev.id },
-          });
-      } else if (e.key === "]") {
-        const next = list[idx - 1];
-        if (next)
-          navigate({
-            to: "/p/$projectDir/s/$sessionId",
-            params: { projectDir, sessionId: next.id },
-          });
-      }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [navigate, projectDir, sessionId, sessionsQ.data]);
-
   return (
     <div className="flex flex-col h-full min-h-0">
+      {!standalone && (
+        <NeighborSessionNav projectDir={projectDir} sessionId={sessionId} />
+      )}
       <SessionTopbar session={session}>
         <div className="flex items-center gap-1">
           <button
@@ -274,17 +242,37 @@ export function Conversation({
           >
             <Search className="w-4 h-4" />
           </button>
-          <button
-            className="p-1.5 rounded hover:bg-surface-2 text-fg-subtle hover:text-fg"
-            onClick={toggleInspector}
-            title="Toggle inspector (i)"
-          >
-            {inspectorOpen ? (
-              <PanelRightClose className="w-4 h-4" />
-            ) : (
-              <PanelRight className="w-4 h-4" />
-            )}
-          </button>
+          {standalone ? (
+            <button
+              className="p-1.5 rounded hover:bg-surface-2 text-fg-subtle hover:text-fg"
+              onClick={onDownloadJsonl}
+              title="Download session as JSONL"
+            >
+              <Download className="w-4 h-4" />
+            </button>
+          ) : (
+            <a
+              className="p-1.5 rounded hover:bg-surface-2 text-fg-subtle hover:text-fg"
+              href={`/api/projects/${encodeURIComponent(projectDir)}/sessions/${encodeURIComponent(sessionId)}/export`}
+              download={`${sessionId}.html`}
+              title="Export session as HTML"
+            >
+              <Download className="w-4 h-4" />
+            </a>
+          )}
+          {!standalone && (
+            <button
+              className="p-1.5 rounded hover:bg-surface-2 text-fg-subtle hover:text-fg"
+              onClick={toggleInspector}
+              title="Toggle inspector (i)"
+            >
+              {inspectorOpen ? (
+                <PanelRightClose className="w-4 h-4" />
+              ) : (
+                <PanelRight className="w-4 h-4" />
+              )}
+            </button>
+          )}
         </div>
       </SessionTopbar>
 
@@ -462,3 +450,51 @@ function SearchBar({
   );
 }
 
+// Only mounted in the main app: needs a router context (useNavigate) and
+// the API-backed sessions list. Standalone exports skip it entirely.
+function NeighborSessionNav({
+  projectDir,
+  sessionId,
+}: {
+  projectDir: string;
+  sessionId: string;
+}) {
+  const sessionsQ = useQuery({
+    queryKey: qk.sessions(projectDir),
+    queryFn: () => api.listSessions(projectDir),
+  });
+  const navigate = useNavigate();
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const target = e.target as HTMLElement | null;
+      const inInput =
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable);
+      if (inInput) return;
+      const list = sessionsQ.data;
+      if (!list) return;
+      const idx = list.findIndex((s) => s.id === sessionId);
+      if (idx === -1) return;
+      if (e.key === "[") {
+        const prev = list[idx + 1];
+        if (prev)
+          navigate({
+            to: "/p/$projectDir/s/$sessionId",
+            params: { projectDir, sessionId: prev.id },
+          });
+      } else if (e.key === "]") {
+        const next = list[idx - 1];
+        if (next)
+          navigate({
+            to: "/p/$projectDir/s/$sessionId",
+            params: { projectDir, sessionId: next.id },
+          });
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [navigate, projectDir, sessionId, sessionsQ.data]);
+  return null;
+}

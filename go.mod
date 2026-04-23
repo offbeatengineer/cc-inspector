@@ -1,3 +1,8 @@
 module github.com/offbeatengineer/cc-inspector
 
 go 1.23
+
+require (
+	github.com/alecthomas/chroma/v2 v2.23.1 // indirect
+	github.com/dlclark/regexp2 v1.11.5 // indirect
+)
