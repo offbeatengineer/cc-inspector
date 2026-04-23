@@ -16,7 +16,7 @@ calls, sub-agents, and all.
 ## Install
 
 ```sh
-# Once the Homebrew tap is published:
+# via Homebrew
 brew install offbeatengineer/tap/cc-inspector
 
 # Or install from source:
