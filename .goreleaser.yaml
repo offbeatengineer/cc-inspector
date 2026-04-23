@@ -20,9 +20,9 @@ builds:
       - -trimpath
     ldflags:
       - -s -w
-      - -X github.com/offbeatengineer/cc-inspector/internal/version.version={{.Version}}
-      - -X github.com/offbeatengineer/cc-inspector/internal/version.commit={{.ShortCommit}}
-      - -X github.com/offbeatengineer/cc-inspector/internal/version.date={{.Date}}
+      - -X github.com/offbeatengineer/cc-inspector/internal/version.Version={{.Version}}
+      - -X github.com/offbeatengineer/cc-inspector/internal/version.Commit={{.ShortCommit}}
+      - -X github.com/offbeatengineer/cc-inspector/internal/version.Date={{.Date}}
     goos: [darwin, linux]
     goarch: [amd64, arm64]
 
