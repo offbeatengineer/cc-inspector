@@ -1,9 +1,11 @@
 // Decorate text nodes inside `root` that match `needle` with a `.search-hit`
 // span. Cheap and best-effort — called on every render of a visible row.
 export function highlightNodeTree(root: HTMLElement, needle: string) {
+  unhighlightNodeTree(root);
   if (!needle) return;
   const q = needle.trim();
   if (q.length < 2) return;
+  const test = new RegExp(escapeRe(q), "i");
   const re = new RegExp(escapeRe(q), "gi");
 
   // Collect text nodes without touching <style>, <script>, or already-highlighted spans.
@@ -14,7 +16,7 @@ export function highlightNodeTree(root: HTMLElement, needle: string) {
       if (parent.closest(".search-hit")) return NodeFilter.FILTER_REJECT;
       const tag = parent.tagName;
       if (tag === "STYLE" || tag === "SCRIPT") return NodeFilter.FILTER_REJECT;
-      return node.nodeValue && re.test(node.nodeValue)
+      return node.nodeValue && test.test(node.nodeValue)
         ? NodeFilter.FILTER_ACCEPT
         : NodeFilter.FILTER_REJECT;
     },
@@ -48,6 +50,20 @@ export function highlightNodeTree(root: HTMLElement, needle: string) {
     }
     node.parentNode?.replaceChild(frag, node);
   }
+}
+
+// Unwrap any `.search-hit` spans previously inserted by highlightNodeTree,
+// leaving the original text behind and merging adjacent text nodes.
+export function unhighlightNodeTree(root: HTMLElement) {
+  const spans = root.querySelectorAll<HTMLSpanElement>("span.search-hit");
+  const parents = new Set<Node>();
+  spans.forEach((span) => {
+    const parent = span.parentNode;
+    if (!parent) return;
+    parent.replaceChild(document.createTextNode(span.textContent ?? ""), span);
+    parents.add(parent);
+  });
+  parents.forEach((p) => (p as Element).normalize?.());
 }
 
 function escapeRe(s: string) {

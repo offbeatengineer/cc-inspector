@@ -2,7 +2,7 @@ import { memo, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { CodeBlock } from "./CodeBlock";
-import { highlightNodeTree } from "./highlightSearch";
+import { highlightNodeTree, unhighlightNodeTree } from "./highlightSearch";
 
 export const Markdown = memo(function Markdown({
   text,
@@ -46,7 +46,9 @@ export const Markdown = memo(function Markdown({
     <div
       className={"prose-chat " + (className ?? "")}
       ref={(el) => {
-        if (el && searchQuery) highlightNodeTree(el, searchQuery);
+        if (!el) return;
+        if (searchQuery) highlightNodeTree(el, searchQuery);
+        else unhighlightNodeTree(el);
       }}
     >
       {rendered}

@@ -11,6 +11,7 @@ import { api, qk } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { groupMessages, type DisplayItem } from "./groupMessages";
 import { SessionTopbar } from "./SessionTopbar";
+import { computeHitMap, locateHit } from "./searchHits";
 
 export function Conversation({
   session,
@@ -78,30 +79,99 @@ export function Conversation({
     return () => setScrollToAnchor(null);
   }, [items, virtualizer, setScrollToAnchor]);
 
-  const hitNodesRef = useRef<HTMLElement[]>([]);
-  const recomputeHits = () => {
-    const nodes = scrollerRef.current?.querySelectorAll<HTMLElement>(
-      ".search-hit"
+  // Session-wide hit map computed from source text — not affected by
+  // virtualization. `perItem[i]` is the hit count in items[i].
+  const hitMap = useMemo(() => computeHitMap(items, search), [items, search]);
+  const hitCount = hitMap.total;
+
+  // Resolve the active global hit into (itemIndex, subIndex) lazily.
+  const activeLocation = useMemo(
+    () => (hitCount > 0 ? locateHit(hitMap, activeHit) : null),
+    [hitMap, activeHit, hitCount],
+  );
+
+  // Apply the `.search-hit-active` class to the subIndex-th `.search-hit` span
+  // in the active item's row. Row may not be mounted yet (virtualizer) or its
+  // highlights may not be applied yet (Markdown ref callback runs at commit);
+  // poll a few frames.
+  const applyActiveClass = (itemIndex: number, subIndex: number, attempts = 30) => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    const rowEl = scroller.querySelector<HTMLElement>(
+      `[data-index="${itemIndex}"]`,
     );
-    hitNodesRef.current = nodes ? Array.from(nodes) : [];
-    hitNodesRef.current.forEach((n, i) =>
-      n.classList.toggle("search-hit-active", i === activeHit)
-    );
+    const hits = rowEl?.querySelectorAll<HTMLElement>(".search-hit");
+    if (!hits || hits.length === 0) {
+      if (attempts > 0)
+        requestAnimationFrame(() =>
+          applyActiveClass(itemIndex, subIndex, attempts - 1),
+        );
+      return;
+    }
+    scroller
+      .querySelectorAll<HTMLElement>(".search-hit-active")
+      .forEach((n) => n.classList.remove("search-hit-active"));
+    const target = hits[Math.min(subIndex, hits.length - 1)];
+    target.classList.add("search-hit-active");
   };
-  useEffect(() => {
-    recomputeHits();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, activeHit, focusIndex]);
 
   const scrollToHit = (n: number) => {
-    recomputeHits();
-    const hits = hitNodesRef.current;
-    if (!hits.length) return;
-    const idx = ((n % hits.length) + hits.length) % hits.length;
+    if (hitCount === 0) return;
+    const idx = ((n % hitCount) + hitCount) % hitCount;
+    const loc = locateHit(hitMap, idx);
+    if (!loc) return;
     setActiveHit(idx);
-    hits[idx].scrollIntoView({ block: "center", behavior: "smooth" });
-    hits.forEach((h, i) => h.classList.toggle("search-hit-active", i === idx));
+    virtualizer.scrollToIndex(loc.itemIndex, { align: "center" });
+    const focusHit = (attempts: number) => {
+      const scroller = scrollerRef.current;
+      const rowEl = scroller?.querySelector<HTMLElement>(
+        `[data-index="${loc.itemIndex}"]`,
+      );
+      const hits = rowEl?.querySelectorAll<HTMLElement>(".search-hit");
+      if (!hits || hits.length === 0) {
+        if (attempts > 0)
+          requestAnimationFrame(() => focusHit(attempts - 1));
+        return;
+      }
+      scroller
+        ?.querySelectorAll<HTMLElement>(".search-hit-active")
+        .forEach((n) => n.classList.remove("search-hit-active"));
+      const target = hits[Math.min(loc.subIndex, hits.length - 1)];
+      target.classList.add("search-hit-active");
+      target.scrollIntoView({ block: "center", behavior: "smooth" });
+    };
+    requestAnimationFrame(() => focusHit(30));
   };
+
+  // Re-apply the active class whenever the active location changes, the query
+  // changes (spans are recreated), or the virtualizer mounts/unmounts rows
+  // (spans inside the active row may need the class restored).
+  useEffect(() => {
+    if (!activeLocation) return;
+    applyActiveClass(activeLocation.itemIndex, activeLocation.subIndex);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeLocation?.itemIndex, activeLocation?.subIndex, search]);
+
+  useEffect(() => {
+    if (!searchOpen || !search) return;
+    const el = scrollerRef.current;
+    if (!el) return;
+    let raf = 0;
+    const schedule = () => {
+      if (raf || !activeLocation) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        applyActiveClass(activeLocation.itemIndex, activeLocation.subIndex, 5);
+      });
+    };
+    const observer = new MutationObserver(schedule);
+    observer.observe(el, { childList: true, subtree: true, characterData: true });
+    return () => {
+      observer.disconnect();
+      if (raf) cancelAnimationFrame(raf);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchOpen, search, activeLocation?.itemIndex, activeLocation?.subIndex]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -224,10 +294,13 @@ export function Conversation({
           onChange={(v) => {
             setSearch(v);
             setActiveHit(0);
+            // After the memo recomputes on next render, jump to the first hit.
             requestAnimationFrame(() => {
-              recomputeHits();
-              if (hitNodesRef.current[0])
-                hitNodesRef.current[0].scrollIntoView({ block: "center" });
+              const map = computeHitMap(items, v);
+              if (map.total === 0) return;
+              const loc = locateHit(map, 0);
+              if (!loc) return;
+              virtualizer.scrollToIndex(loc.itemIndex, { align: "center" });
             });
           }}
           onClose={() => {
@@ -236,7 +309,7 @@ export function Conversation({
           }}
           onNext={() => scrollToHit(activeHit + 1)}
           onPrev={() => scrollToHit(activeHit - 1)}
-          hitCount={hitNodesRef.current.length}
+          hitCount={hitCount}
           activeHit={activeHit}
         />
       )}
