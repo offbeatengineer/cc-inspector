@@ -1,12 +1,14 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { PanelRight, PanelRightClose, ChevronLeft, ChevronRight, Download, Search } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 
-import type { Session } from "../../lib/types";
+import type { AnnotationMap, Session } from "../../lib/types";
 import { useUI } from "../../stores/ui";
 import { MessageCard } from "./MessageCard";
+import { MessageAnnotation } from "./MessageAnnotation";
 import { api, qk } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { groupMessages, type DisplayItem } from "./groupMessages";
@@ -35,8 +37,18 @@ export function Conversation({
   const [search, setSearch] = useState("");
   const [activeHit, setActiveHit] = useState(0);
   const [focusIndex, setFocusIndex] = useState(0);
+  const [editingUuid, setEditingUuid] = useState<string | null>(null);
+  const [includeAnnotationsInExport, setIncludeAnnotationsInExport] =
+    useState(true);
 
   const items = useMemo(() => groupMessages(session.messages), [session.messages]);
+
+  const annotationsQ = useQuery({
+    queryKey: qk.annotations(projectDir, sessionId),
+    queryFn: () => api.listAnnotations(projectDir, sessionId),
+    staleTime: 0,
+  });
+  const annotations: AnnotationMap = annotationsQ.data ?? {};
 
   const virtualizer = useVirtualizer({
     count: items.length,
@@ -53,6 +65,7 @@ export function Conversation({
     setFocusIndex(0);
     setSearch("");
     setActiveHit(0);
+    setEditingUuid(null);
   }, [sessionId, virtualizer]);
 
   useEffect(() => {
@@ -220,11 +233,18 @@ export function Conversation({
         setTimeout(() => (lastKeyRef.current = ""), 600);
       } else if (e.key === "i" && !standalone) {
         toggleInspector();
+      } else if (e.key === "c" && !standalone) {
+        const item = items[focusIndex];
+        const uuid = item?.message.uuid;
+        if (uuid) {
+          e.preventDefault();
+          setEditingUuid(uuid);
+        }
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [focusIndex, items.length, virtualizer, setSearchOpen, toggleInspector, standalone]);
+  }, [focusIndex, items, virtualizer, setSearchOpen, toggleInspector, standalone]);
 
   const lastKeyRef = useRef("");
 
@@ -251,14 +271,13 @@ export function Conversation({
               <Download className="w-4 h-4" />
             </button>
           ) : (
-            <a
-              className="p-1.5 rounded hover:bg-surface-2 text-fg-subtle hover:text-fg"
-              href={`/api/projects/${encodeURIComponent(projectDir)}/sessions/${encodeURIComponent(sessionId)}/export`}
-              download={`${sessionId}.html`}
-              title="Export session as HTML"
-            >
-              <Download className="w-4 h-4" />
-            </a>
+            <ExportMenu
+              projectDir={projectDir}
+              sessionId={sessionId}
+              includeAnnotations={includeAnnotationsInExport}
+              setIncludeAnnotations={setIncludeAnnotationsInExport}
+              hasAnnotations={Object.keys(annotations).length > 0}
+            />
           )}
           {!standalone && (
             <button
@@ -336,6 +355,19 @@ export function Conversation({
                   projectDir={projectDir}
                   sessionId={sessionId}
                   subagentSummaries={session.subagentSummaries}
+                  annotation={
+                    item.message.uuid
+                      ? annotations[item.message.uuid]
+                      : undefined
+                  }
+                  isEditing={
+                    !!item.message.uuid && editingUuid === item.message.uuid
+                  }
+                  onEdit={() =>
+                    item.message.uuid && setEditingUuid(item.message.uuid)
+                  }
+                  onCancelEdit={() => setEditingUuid(null)}
+                  standalone={standalone}
                 />
               </div>
             );
@@ -354,6 +386,11 @@ function Row({
   projectDir,
   sessionId,
   subagentSummaries,
+  annotation,
+  isEditing,
+  onEdit,
+  onCancelEdit,
+  standalone,
 }: {
   item: DisplayItem;
   focused: boolean;
@@ -361,12 +398,17 @@ function Row({
   projectDir: string;
   sessionId: string;
   subagentSummaries: Session["subagentSummaries"];
+  annotation: import("../../lib/types").Annotation | undefined;
+  isEditing: boolean;
+  onEdit: () => void;
+  onCancelEdit: () => void;
+  standalone: boolean;
 }) {
   return (
     <div
       id={item.anchorId}
       className={cn(
-        "px-4 md:px-8 py-2",
+        "group px-4 md:px-8 py-2",
         focused && "bg-surface-2/30"
       )}
     >
@@ -376,7 +418,24 @@ function Row({
         projectDir={projectDir}
         sessionId={sessionId}
         subagentSummaries={subagentSummaries}
+        onAddNote={
+          item.message.uuid && !annotation && !isEditing && !standalone
+            ? onEdit
+            : undefined
+        }
       />
+      {item.message.uuid && (
+        <MessageAnnotation
+          projectDir={projectDir}
+          sessionId={sessionId}
+          messageUuid={item.message.uuid}
+          annotation={annotation}
+          isEditing={isEditing}
+          onEdit={onEdit}
+          onCancelEdit={onCancelEdit}
+          readOnly={standalone}
+        />
+      )}
     </div>
   );
 }
@@ -447,6 +506,89 @@ function SearchBar({
         Esc
       </button>
     </div>
+  );
+}
+
+function ExportMenu({
+  projectDir,
+  sessionId,
+  includeAnnotations,
+  setIncludeAnnotations,
+  hasAnnotations,
+}: {
+  projectDir: string;
+  sessionId: string;
+  includeAnnotations: boolean;
+  setIncludeAnnotations: (v: boolean) => void;
+  hasAnnotations: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [anchor, setAnchor] = useState<{ top: number; right: number } | null>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (btnRef.current?.contains(t) || popupRef.current?.contains(t)) return;
+      setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [open]);
+
+  const toggle = () => {
+    if (!open && btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect();
+      setAnchor({ top: r.bottom + 4, right: window.innerWidth - r.right });
+    }
+    setOpen((v) => !v);
+  };
+
+  const href = api.exportSessionURL(projectDir, sessionId, {
+    annotations: includeAnnotations,
+  });
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        className="p-1.5 rounded hover:bg-surface-2 text-fg-subtle hover:text-fg"
+        onClick={toggle}
+        title="Export session as HTML"
+      >
+        <Download className="w-4 h-4" />
+      </button>
+      {open && anchor &&
+        createPortal(
+          <div
+            ref={popupRef}
+            style={{ position: "fixed", top: anchor.top, right: anchor.right, zIndex: 50 }}
+            className="min-w-[220px] rounded border border-border bg-surface shadow-lg p-2 text-sm"
+          >
+            {hasAnnotations && (
+              <label className="flex items-center gap-2 px-1 py-1 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={includeAnnotations}
+                  onChange={(e) => setIncludeAnnotations(e.target.checked)}
+                />
+                <span>Include annotations</span>
+              </label>
+            )}
+            <a
+              className="mt-1 block px-2 py-1 rounded text-center bg-user text-user-fg hover:opacity-90"
+              href={href}
+              download={`${sessionId}.html`}
+              onClick={() => setOpen(false)}
+            >
+              Export HTML
+            </a>
+          </div>,
+          document.body,
+        )}
+    </>
   );
 }
 

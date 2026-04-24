@@ -37,6 +37,13 @@ export function installFetchShim(payload: ExportPayload) {
         : notFound(url);
     }
 
+    if (url.match(/\/annotations(?:\/|\?|$)/)) {
+      return textRes(
+        JSON.stringify({ annotations: payload.annotations ?? {} }),
+        "application/json",
+      );
+    }
+
     return originalFetch(input as RequestInfo, init);
   };
 }

@@ -8,9 +8,10 @@ import (
 )
 
 type Config struct {
-	ClaudeDir   string
-	ProjectsDir string
-	CacheDir    string
+	ClaudeDir      string
+	ProjectsDir    string
+	CacheDir       string
+	AnnotationsDir string
 }
 
 // Resolve returns a Config for the given claude-dir override (empty = default).
@@ -47,5 +48,41 @@ func Resolve(override string) (*Config, error) {
 		return nil, fmt.Errorf("create cache dir: %w", err)
 	}
 
-	return &Config{ClaudeDir: abs, ProjectsDir: projects, CacheDir: cache}, nil
+	annotations, err := resolveAnnotationsDir()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Config{
+		ClaudeDir:      abs,
+		ProjectsDir:    projects,
+		CacheDir:       cache,
+		AnnotationsDir: annotations,
+	}, nil
+}
+
+// resolveAnnotationsDir returns the directory where cc-inspector stores
+// per-session annotations. Honors $CC_INSPECTOR_HOME and $XDG_DATA_HOME;
+// defaults to ~/.cc-inspector/annotations. The directory itself is created
+// lazily on first write — we only compute the path here.
+func resolveAnnotationsDir() (string, error) {
+	if env := os.Getenv("CC_INSPECTOR_HOME"); env != "" {
+		abs, err := filepath.Abs(env)
+		if err != nil {
+			return "", fmt.Errorf("resolve CC_INSPECTOR_HOME: %w", err)
+		}
+		return filepath.Join(abs, "annotations"), nil
+	}
+	if env := os.Getenv("XDG_DATA_HOME"); env != "" {
+		abs, err := filepath.Abs(env)
+		if err != nil {
+			return "", fmt.Errorf("resolve XDG_DATA_HOME: %w", err)
+		}
+		return filepath.Join(abs, "cc-inspector", "annotations"), nil
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("resolve home dir: %w", err)
+	}
+	return filepath.Join(home, ".cc-inspector", "annotations"), nil
 }

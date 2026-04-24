@@ -3,7 +3,7 @@ import type { ContentBlock, Message, SubagentSummary } from "../../lib/types";
 import { ThinkingBlock } from "./ThinkingBlock";
 import { ToolCall } from "./tools/ToolCall";
 import { Markdown } from "./Markdown";
-import { Bot, User, FileText, Paperclip, Shield, Radio } from "lucide-react";
+import { Bot, User, FileText, Paperclip, Shield, Radio, MessageSquarePlus } from "lucide-react";
 import { formatAbsolute, truncate } from "../../lib/format";
 import { SafeJSON } from "./SafeJSON";
 import { ImageBlock } from "./ImageBlock";
@@ -14,16 +14,18 @@ export function MessageCard({
   projectDir,
   sessionId,
   subagentSummaries,
+  onAddNote,
 }: {
   item: DisplayItem;
   searchQuery: string;
   projectDir: string;
   sessionId: string;
   subagentSummaries: Record<string, SubagentSummary>;
+  onAddNote?: () => void;
 }) {
   switch (item.kind) {
     case "user":
-      return <UserCard message={item.message} searchQuery={searchQuery} />;
+      return <UserCard message={item.message} searchQuery={searchQuery} onAddNote={onAddNote} />;
     case "assistant":
       return (
         <AssistantCard
@@ -33,6 +35,7 @@ export function MessageCard({
           projectDir={projectDir}
           sessionId={sessionId}
           subagentSummaries={subagentSummaries}
+          onAddNote={onAddNote}
         />
       );
     case "system":
@@ -83,7 +86,15 @@ export function MessageCard({
   }
 }
 
-function UserCard({ message, searchQuery }: { message: Message; searchQuery: string }) {
+function UserCard({
+  message,
+  searchQuery,
+  onAddNote,
+}: {
+  message: Message;
+  searchQuery: string;
+  onAddNote?: () => void;
+}) {
   const blocks = message.message?.content ?? [];
   // Detect injected local command output ("local-command-stdout" etc.)
   return (
@@ -101,6 +112,7 @@ function UserCard({ message, searchQuery }: { message: Message; searchQuery: str
               {formatAbsolute(message.timestamp)}
             </div>
           )}
+          {onAddNote && <AddNoteButton onClick={onAddNote} />}
         </div>
         {blocks.map((b, i) => (
           <UserBlock key={i} block={b} searchQuery={searchQuery} />
@@ -145,6 +157,7 @@ function AssistantCard({
   projectDir,
   sessionId,
   subagentSummaries,
+  onAddNote,
 }: {
   message: Message;
   tools: ToolPair[];
@@ -152,6 +165,7 @@ function AssistantCard({
   projectDir: string;
   sessionId: string;
   subagentSummaries: Record<string, SubagentSummary>;
+  onAddNote?: () => void;
 }) {
   const blocks = message.message?.content ?? [];
   const model = message.message?.model;
@@ -175,6 +189,7 @@ function AssistantCard({
               {formatAbsolute(message.timestamp)}
             </div>
           )}
+          {onAddNote && <AddNoteButton onClick={onAddNote} />}
         </div>
         {blocks.map((b, i) => (
           <AssistantBlock
@@ -266,4 +281,19 @@ function stripRender(m: Message): Partial<Message> {
   const { message: _m, ...rest } = m;
   void _m;
   return rest;
+}
+
+// Visible only when the enclosing .group row is hovered or focused, so it
+// does not take layout space when idle.
+function AddNoteButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      title="Add note (c)"
+      className="ml-1 inline-flex items-center gap-1 text-[10px] text-fg-subtle hover:text-fg px-1.5 py-0.5 rounded hover:bg-surface-2 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+    >
+      <MessageSquarePlus className="w-3 h-3" />
+      Add note
+    </button>
+  );
 }

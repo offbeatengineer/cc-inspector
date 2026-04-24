@@ -137,3 +137,12 @@ export interface SubagentResponse {
   summary: SubagentSummary;
   messages: Message[];
 }
+
+export interface Annotation {
+  messageUuid: string;
+  text: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type AnnotationMap = Record<string, Annotation>;

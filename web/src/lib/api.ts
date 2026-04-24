@@ -1,4 +1,6 @@
 import type {
+  Annotation,
+  AnnotationMap,
   ProjectInfo,
   SessionInfo,
   Session,
@@ -16,6 +18,24 @@ async function get<T>(path: string, init?: RequestInit): Promise<T> {
     const body = await res.text().catch(() => "");
     throw new Error(`${res.status} ${res.statusText}: ${body.slice(0, 200)}`);
   }
+  return res.json() as Promise<T>;
+}
+
+async function send<T>(
+  path: string,
+  method: string,
+  body?: unknown,
+): Promise<T | null> {
+  const res = await fetch(BASE + path, {
+    method,
+    headers: body !== undefined ? { "Content-Type": "application/json" } : undefined,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`${res.status} ${res.statusText}: ${text.slice(0, 200)}`);
+  }
+  if (res.status === 204) return null;
   return res.json() as Promise<T>;
 }
 
@@ -43,6 +63,39 @@ export const api = {
         sessionId
       )}/tool-results/${encodeURIComponent(fileId)}`
     ).then((r) => r.text()),
+  listAnnotations: async (project: string, sessionId: string): Promise<AnnotationMap> => {
+    const res = await get<{ annotations: AnnotationMap }>(
+      `/projects/${encodeURIComponent(project)}/sessions/${encodeURIComponent(sessionId)}/annotations`,
+    );
+    return res.annotations ?? {};
+  },
+  upsertAnnotation: (
+    project: string,
+    sessionId: string,
+    messageUuid: string,
+    text: string,
+  ) =>
+    send<Annotation>(
+      `/projects/${encodeURIComponent(project)}/sessions/${encodeURIComponent(sessionId)}/annotations/${encodeURIComponent(messageUuid)}`,
+      "PUT",
+      { text },
+    ),
+  deleteAnnotation: (project: string, sessionId: string, messageUuid: string) =>
+    send<null>(
+      `/projects/${encodeURIComponent(project)}/sessions/${encodeURIComponent(sessionId)}/annotations/${encodeURIComponent(messageUuid)}`,
+      "DELETE",
+    ),
+  exportSessionURL: (
+    project: string,
+    sessionId: string,
+    opts?: { annotations?: boolean },
+  ) => {
+    const base = `${BASE}/projects/${encodeURIComponent(project)}/sessions/${encodeURIComponent(sessionId)}/export`;
+    const params = new URLSearchParams();
+    if (opts?.annotations === false) params.set("annotations", "false");
+    const qs = params.toString();
+    return qs ? `${base}?${qs}` : base;
+  },
 };
 
 export const qk = {
@@ -52,4 +105,6 @@ export const qk = {
     ["session", project, sessionId] as const,
   subagent: (project: string, sessionId: string, agentId: string) =>
     ["subagent", project, sessionId, agentId] as const,
+  annotations: (project: string, sessionId: string) =>
+    ["annotations", project, sessionId] as const,
 };

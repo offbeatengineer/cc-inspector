@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/offbeatengineer/cc-inspector/internal/annotations"
 	"github.com/offbeatengineer/cc-inspector/internal/api"
 	"github.com/offbeatengineer/cc-inspector/internal/config"
 	"github.com/offbeatengineer/cc-inspector/internal/scanner"
@@ -30,8 +31,10 @@ func Run(ctx context.Context, opts Options) error {
 	}
 	defer cache.Flush()
 
+	annStore := annotations.NewStore(opts.Config.AnnotationsDir)
+
 	mux := http.NewServeMux()
-	api.Register(mux, api.Deps{Config: opts.Config, Cache: cache})
+	api.Register(mux, api.Deps{Config: opts.Config, Cache: cache, Annotations: annStore})
 
 	if opts.Static != nil {
 		mux.Handle("/", opts.Static)

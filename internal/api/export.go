@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/offbeatengineer/cc-inspector/internal/annotations"
 	"github.com/offbeatengineer/cc-inspector/internal/session"
 	"github.com/offbeatengineer/cc-inspector/internal/web"
 )
@@ -118,6 +119,16 @@ func handleExportSession(deps Deps) http.Handler {
 		}
 		highlights := renderHighlights(codeBlocks)
 
+		// Annotations default to included; clients opt out with ?annotations=false.
+		includeAnnotations := r.URL.Query().Get("annotations") != "false"
+		anns := map[string]annotations.Annotation{}
+		if includeAnnotations && deps.Annotations != nil {
+			loaded, err := deps.Annotations.List(project, sid)
+			if err == nil {
+				anns = loaded
+			}
+		}
+
 		payload := map[string]any{
 			"meta": map[string]string{
 				"id":         sid,
@@ -129,6 +140,7 @@ func handleExportSession(deps Deps) http.Handler {
 			"subagents":    subagents,
 			"highlights":   highlights,
 			"highlightCSS": highlightCSS(),
+			"annotations":  anns,
 		}
 		payloadJSON, err := json.Marshal(payload)
 		if err != nil {

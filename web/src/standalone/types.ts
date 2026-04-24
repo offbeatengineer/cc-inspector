@@ -1,4 +1,4 @@
-import type { Session, SubagentResponse } from "../lib/types";
+import type { AnnotationMap, Session, SubagentResponse } from "../lib/types";
 
 export type ExportPayload = {
   meta: { id: string; projectDir: string };
@@ -8,6 +8,7 @@ export type ExportPayload = {
   subagents: Record<string, SubagentResponse>;
   highlights: Record<string, string>;
   highlightCSS: string;
+  annotations?: AnnotationMap;
 };
 
 declare global {
