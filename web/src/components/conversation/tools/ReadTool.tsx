@@ -30,24 +30,23 @@ export function ReadTool({
       pair={pair}
       icon={<FileText className="w-3.5 h-3.5" />}
       title={<span className="font-mono">{shortenPath(path, 60)}</span>}
-      rightMeta={lines ? <span>{lines} lines</span> : null}
-      body={
+      rightMeta={
         <>
-          <div className="text-[11px] text-fg-subtle font-mono break-all">
-            {path}
-            {input.offset ? ` · offset ${input.offset}` : ""}
-            {input.limit ? ` · limit ${input.limit}` : ""}
-          </div>
-          {pair.result?.external ? (
-            <ExternalResultLoader
-              external={pair.result.external}
-              projectDir={projectDir}
-              sessionId={sessionId}
-            />
-          ) : (
-            text && <ResultText text={text} />
-          )}
+          {input.offset != null && <span>@{input.offset}</span>}
+          {input.limit != null && <span>·{input.limit}</span>}
+          {lines ? <span>{lines} lines</span> : null}
         </>
+      }
+      body={
+        pair.result?.external ? (
+          <ExternalResultLoader
+            external={pair.result.external}
+            projectDir={projectDir}
+            sessionId={sessionId}
+          />
+        ) : (
+          text && <ResultText text={text} />
+        )
       }
     />
   );

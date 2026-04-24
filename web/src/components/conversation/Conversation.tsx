@@ -412,30 +412,32 @@ function Row({
         focused && "bg-surface-2/30"
       )}
     >
-      <MessageCard
-        item={item}
-        searchQuery={searchQuery}
-        projectDir={projectDir}
-        sessionId={sessionId}
-        subagentSummaries={subagentSummaries}
-        onAddNote={
-          item.message.uuid && !annotation && !isEditing && !standalone
-            ? onEdit
-            : undefined
-        }
-      />
-      {item.message.uuid && (
-        <MessageAnnotation
+      <div className="max-w-[880px] mx-auto">
+        <MessageCard
+          item={item}
+          searchQuery={searchQuery}
           projectDir={projectDir}
           sessionId={sessionId}
-          messageUuid={item.message.uuid}
-          annotation={annotation}
-          isEditing={isEditing}
-          onEdit={onEdit}
-          onCancelEdit={onCancelEdit}
-          readOnly={standalone}
+          subagentSummaries={subagentSummaries}
+          onAddNote={
+            item.message.uuid && !annotation && !isEditing && !standalone
+              ? onEdit
+              : undefined
+          }
         />
-      )}
+        {item.message.uuid && (
+          <MessageAnnotation
+            projectDir={projectDir}
+            sessionId={sessionId}
+            messageUuid={item.message.uuid}
+            annotation={annotation}
+            isEditing={isEditing}
+            onEdit={onEdit}
+            onCancelEdit={onCancelEdit}
+            readOnly={standalone}
+          />
+        )}
+      </div>
     </div>
   );
 }

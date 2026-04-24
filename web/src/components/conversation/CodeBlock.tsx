@@ -42,7 +42,7 @@ export function CodeBlock({ code, language }: { code: string; language: string }
     );
   }
   return (
-    <pre className="bg-surface-2 border border-border rounded px-3 py-2 overflow-x-auto text-[12.5px] font-mono">
+    <pre className="bg-surface-2 rounded px-3 py-2 overflow-x-auto text-[12.5px] font-mono">
       <code>{code}</code>
     </pre>
   );

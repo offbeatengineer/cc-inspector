@@ -39,13 +39,6 @@ export function BashTool({
       pair={pair}
       icon={<Terminal className="w-3.5 h-3.5" />}
       title={<span className="font-mono truncate">{cmd || "(no command)"}</span>}
-      summary={
-        desc ? (
-          <span>{desc}</span>
-        ) : tur.stdout ? (
-          <span>{firstLine(tur.stdout)}</span>
-        ) : null
-      }
       rightMeta={
         tur.exitCode != null
           ? <span>exit {tur.exitCode}</span>
@@ -54,33 +47,21 @@ export function BashTool({
           : null
       }
       body={
-        <>
-          <div>
-            <div className="text-[11px] text-fg-subtle mb-1">command</div>
-            <pre className="text-[12.5px] font-mono bg-surface-2 border border-border rounded px-2 py-1.5 overflow-x-auto whitespace-pre-wrap">
-              {cmd}
-            </pre>
-            {desc && (
-              <div className="mt-1 text-[11px] text-fg-subtle">{desc}</div>
-            )}
-          </div>
+        <div className="space-y-1.5">
+          {desc && (
+            <div className="text-[11px] text-fg-subtle italic">{desc}</div>
+          )}
           {tur.stdout != null && tur.stdout !== "" && (
-            <div>
-              <div className="text-[11px] text-fg-subtle mb-1">stdout</div>
-              <ResultText text={tur.stdout} />
-            </div>
+            <ResultText text={tur.stdout} />
           )}
           {tur.stderr && (
             <div>
-              <div className="text-[11px] text-error mb-1">stderr</div>
+              <div className="text-[11px] text-error mb-0.5">stderr</div>
               <ResultText text={tur.stderr} />
             </div>
           )}
           {tur.error && (
-            <div>
-              <div className="text-[11px] text-error mb-1">error</div>
-              <div className="text-[12px] text-error">{tur.error}</div>
-            </div>
+            <div className="text-[12px] text-error">{tur.error}</div>
           )}
           {pair.result?.external && (
             <ExternalResultLoader
@@ -96,13 +77,8 @@ export function BashTool({
             !pair.result.external && (
               <ResultText text={resultText(pair.result.content)} />
             )}
-        </>
+        </div>
       }
     />
   );
-}
-
-function firstLine(s: string): string {
-  const i = s.indexOf("\n");
-  return i === -1 ? s : s.slice(0, i) + " …";
 }

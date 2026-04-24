@@ -3,7 +3,7 @@ import type { ContentBlock, Message, SubagentSummary } from "../../lib/types";
 import { ThinkingBlock } from "./ThinkingBlock";
 import { ToolCall } from "./tools/ToolCall";
 import { Markdown } from "./Markdown";
-import { Bot, User, FileText, Paperclip, Shield, Radio, MessageSquarePlus } from "lucide-react";
+import { FileText, Paperclip, Shield, Radio, MessageSquarePlus } from "lucide-react";
 import { formatAbsolute, truncate } from "../../lib/format";
 import { SafeJSON } from "./SafeJSON";
 import { ImageBlock } from "./ImageBlock";
@@ -96,24 +96,20 @@ function UserCard({
   onAddNote?: () => void;
 }) {
   const blocks = message.message?.content ?? [];
-  // Detect injected local command output ("local-command-stdout" etc.)
   return (
-    <div className="flex gap-3" id={`msg-${message.uuid}`}>
-      <div className="shrink-0 mt-1">
-        <div className="w-6 h-6 rounded-full bg-user text-user-fg flex items-center justify-center">
-          <User className="w-3.5 h-3.5" />
+    <div className="space-y-1" id={`msg-${message.uuid}`}>
+      <div className="flex items-baseline gap-2">
+        <div className="text-[11px] uppercase tracking-wide font-medium text-fg-subtle">
+          You
         </div>
+        {message.timestamp && (
+          <div className="text-[10px] text-fg-subtle">
+            {formatAbsolute(message.timestamp)}
+          </div>
+        )}
+        {onAddNote && <AddNoteButton onClick={onAddNote} />}
       </div>
-      <div className="flex-1 min-w-0 space-y-2">
-        <div className="flex items-baseline gap-2">
-          <div className="text-xs font-medium text-fg-muted">User</div>
-          {message.timestamp && (
-            <div className="text-[10px] text-fg-subtle">
-              {formatAbsolute(message.timestamp)}
-            </div>
-          )}
-          {onAddNote && <AddNoteButton onClick={onAddNote} />}
-        </div>
+      <div className="bg-user text-user-fg rounded-lg px-4 py-3 space-y-2">
         {blocks.map((b, i) => (
           <UserBlock key={i} block={b} searchQuery={searchQuery} />
         ))}
@@ -170,39 +166,34 @@ function AssistantCard({
   const blocks = message.message?.content ?? [];
   const model = message.message?.model;
   return (
-    <div className="flex gap-3" id={`msg-${message.uuid}`}>
-      <div className="shrink-0 mt-1">
-        <div className="w-6 h-6 rounded-full bg-surface-2 text-fg-muted flex items-center justify-center">
-          <Bot className="w-3.5 h-3.5" />
+    <div className="space-y-2" id={`msg-${message.uuid}`}>
+      <div className="flex items-baseline gap-2">
+        <div className="text-[11px] uppercase tracking-wide font-medium text-fg-subtle">
+          Assistant
         </div>
+        {model && (
+          <div className="text-[10px] text-fg-subtle" title={model}>
+            {truncate(model, 28)}
+          </div>
+        )}
+        {message.timestamp && (
+          <div className="text-[10px] text-fg-subtle">
+            {formatAbsolute(message.timestamp)}
+          </div>
+        )}
+        {onAddNote && <AddNoteButton onClick={onAddNote} />}
       </div>
-      <div className="flex-1 min-w-0 space-y-2">
-        <div className="flex items-baseline gap-2">
-          <div className="text-xs font-medium text-fg-muted">Assistant</div>
-          {model && (
-            <div className="text-[10px] text-fg-subtle" title={model}>
-              {truncate(model, 28)}
-            </div>
-          )}
-          {message.timestamp && (
-            <div className="text-[10px] text-fg-subtle">
-              {formatAbsolute(message.timestamp)}
-            </div>
-          )}
-          {onAddNote && <AddNoteButton onClick={onAddNote} />}
-        </div>
-        {blocks.map((b, i) => (
-          <AssistantBlock
-            key={i}
-            block={b}
-            tools={tools}
-            searchQuery={searchQuery}
-            projectDir={projectDir}
-            sessionId={sessionId}
-            subagentSummaries={subagentSummaries}
-          />
-        ))}
-      </div>
+      {blocks.map((b, i) => (
+        <AssistantBlock
+          key={i}
+          block={b}
+          tools={tools}
+          searchQuery={searchQuery}
+          projectDir={projectDir}
+          sessionId={sessionId}
+          subagentSummaries={subagentSummaries}
+        />
+      ))}
     </div>
   );
 }

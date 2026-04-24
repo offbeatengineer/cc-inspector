@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
 import { FilePlus } from "lucide-react";
 import type { ToolPair } from "../groupMessages";
-import { ToolShell, ResultText, resultText } from "./ToolShell";
+import { ToolShell } from "./ToolShell";
 import { shortenPath } from "../../../lib/format";
 import { useUI } from "../../../stores/ui";
 
@@ -30,38 +30,25 @@ export function WriteTool({ pair }: { pair: ToolPair; searchQuery: string }) {
       title={<span className="font-mono">{shortenPath(path, 60)}</span>}
       rightMeta={<span className="text-success">+{lines}</span>}
       body={
-        <>
-          <div className="text-[11px] text-fg-subtle font-mono break-all">
-            {path}
-          </div>
-          <div className="rounded border border-border overflow-hidden text-[12px]">
-            <Suspense
-              fallback={
-                <div className="p-2 text-fg-subtle text-xs">loading diff…</div>
-              }
-            >
-              <DiffViewer
-                oldValue=""
-                newValue={content}
-                splitView={false}
-                useDarkTheme={dark}
-                showDiffOnly={false}
-                styles={{
-                  contentText: { fontFamily: "var(--font-mono)", fontSize: 12 },
-                  line: { padding: "0 6px" },
-                }}
-              />
-            </Suspense>
-          </div>
-          {pair.result?.content != null && !pair.result.external && (
-            <details>
-              <summary className="text-[11px] text-fg-subtle cursor-pointer">
-                result
-              </summary>
-              <ResultText text={resultText(pair.result.content)} />
-            </details>
-          )}
-        </>
+        <div className="rounded overflow-hidden text-[12px]">
+          <Suspense
+            fallback={
+              <div className="p-2 text-fg-subtle text-xs">loading diff…</div>
+            }
+          >
+            <DiffViewer
+              oldValue=""
+              newValue={content}
+              splitView={false}
+              useDarkTheme={dark}
+              showDiffOnly={false}
+              styles={{
+                contentText: { fontFamily: "var(--font-mono)", fontSize: 12 },
+                line: { padding: "0 6px" },
+              }}
+            />
+          </Suspense>
+        </div>
       }
     />
   );

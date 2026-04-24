@@ -12,12 +12,14 @@
   --color-fg-subtle: #71717a;
   --color-accent: #7c3aed;
   --color-accent-fg: #ffffff;
-  --color-user: #dbeafe;
+  --color-user: #eff6ff;
   --color-user-fg: #1e3a8a;
   --color-assistant: #f4f4f5;
-  --color-thinking-fg: #7c3aed;
+  --color-thinking-fg: #6d28d9;
   --color-tool: #fef3c7;
+  --color-tool-bg: #f5f5f7;
   --color-error: #dc2626;
+  --color-error-bg: #fef2f2;
   --color-success: #16a34a;
 
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -33,11 +35,13 @@
   --color-fg-muted: #a1a1aa;
   --color-fg-subtle: #71717a;
   --color-accent: #a78bfa;
-  --color-user: #1e293b;
-  --color-user-fg: #bfdbfe;
+  --color-user: #1e2a42;
+  --color-user-fg: #dbeafe;
   --color-assistant: #18181b;
   --color-thinking-fg: #c4b5fd;
   --color-tool: #3f2d06;
+  --color-tool-bg: #131316;
+  --color-error-bg: #1f1111;
 }
 
 html,
@@ -92,7 +96,7 @@ kbd {
 
 .prose-chat {
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.7;
 }
 .prose-chat p { margin: 0.4em 0; }
 .prose-chat p:first-child { margin-top: 0; }
@@ -109,7 +113,6 @@ kbd {
 .prose-chat pre {
   font-family: var(--font-mono);
   background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
   border-radius: 6px;
   padding: 10px 12px;
   overflow-x: auto;

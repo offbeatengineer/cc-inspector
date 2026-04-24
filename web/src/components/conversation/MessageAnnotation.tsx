@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { MessageSquare, Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 
 import type { Annotation } from "../../lib/types";
 import { api, qk } from "../../lib/api";
@@ -85,43 +85,38 @@ function AnnotationView({
   });
 
   return (
-    <div className="mt-2 flex gap-2">
-      <div className="shrink-0 mt-0.5 text-fg-subtle">
-        <MessageSquare className="w-3.5 h-3.5" />
+    <div className="mt-2 pl-3 border-l-2 border-accent/60">
+      <div className="flex items-baseline gap-2 mb-0.5">
+        <div className="text-[10px] uppercase tracking-wide text-accent font-medium">
+          Note
+        </div>
+        <div className="text-[10px] text-fg-subtle">
+          {formatAbsolute(annotation.updatedAt)}
+        </div>
+        {!readOnly && (
+          <div className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+            <button
+              className="p-0.5 rounded hover:bg-surface-2 text-fg-subtle hover:text-fg"
+              onClick={onEdit}
+              title="Edit (c)"
+            >
+              <Pencil className="w-3 h-3" />
+            </button>
+            <button
+              className="p-0.5 rounded hover:bg-surface-2 text-fg-subtle hover:text-fg disabled:opacity-50"
+              onClick={() => {
+                if (confirm("Delete this annotation?")) del.mutate();
+              }}
+              disabled={del.isPending}
+              title="Delete"
+            >
+              <Trash2 className="w-3 h-3" />
+            </button>
+          </div>
+        )}
       </div>
-      <div className="flex-1 min-w-0 rounded border border-border bg-surface-2/40 px-3 py-2">
-        <div className="flex items-baseline gap-2 mb-1">
-          <div className="text-[10px] uppercase tracking-wide text-fg-subtle">
-            Note
-          </div>
-          <div className="text-[10px] text-fg-subtle">
-            {formatAbsolute(annotation.updatedAt)}
-          </div>
-          {!readOnly && (
-            <div className="ml-auto flex items-center gap-1">
-              <button
-                className="p-0.5 rounded hover:bg-surface-2 text-fg-subtle hover:text-fg"
-                onClick={onEdit}
-                title="Edit (c)"
-              >
-                <Pencil className="w-3 h-3" />
-              </button>
-              <button
-                className="p-0.5 rounded hover:bg-surface-2 text-fg-subtle hover:text-fg disabled:opacity-50"
-                onClick={() => {
-                  if (confirm("Delete this annotation?")) del.mutate();
-                }}
-                disabled={del.isPending}
-                title="Delete"
-              >
-                <Trash2 className="w-3 h-3" />
-              </button>
-            </div>
-          )}
-        </div>
-        <div className="whitespace-pre-wrap text-sm text-fg">
-          {annotation.text}
-        </div>
+      <div className="whitespace-pre-wrap text-sm text-fg">
+        {annotation.text}
       </div>
     </div>
   );
@@ -182,58 +177,51 @@ function AnnotationEditor({
   const busy = upsert.isPending || del.isPending;
 
   return (
-    <div className="mt-2 flex gap-2">
-      <div className="shrink-0 mt-0.5 text-fg-subtle">
-        <MessageSquare className="w-3.5 h-3.5" />
+    <div className="mt-2 pl-3 border-l-2 border-accent/60">
+      <div className="text-[10px] uppercase tracking-wide text-accent font-medium mb-1">
+        {initialText ? "Edit note" : "New note"}
       </div>
-      <div className="flex-1 min-w-0 rounded border border-border bg-surface-2/40 px-3 py-2">
-        <div className="text-[10px] uppercase tracking-wide text-fg-subtle mb-1">
-          {initialText ? "Edit note" : "New note"}
+      <textarea
+        ref={ref}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            e.preventDefault();
+            onDone();
+          } else if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+            e.preventDefault();
+            save();
+          }
+        }}
+        rows={3}
+        placeholder="Write a note about this message…"
+        className={cn(
+          "w-full resize-y bg-transparent outline-none text-sm font-mono",
+          "border border-border rounded px-2 py-1",
+        )}
+        disabled={busy}
+      />
+      <div className="mt-1 flex items-center gap-2">
+        <div className="text-[10px] text-fg-subtle">
+          ⌘/Ctrl+Enter save · Esc cancel · empty to delete
         </div>
-        <textarea
-          ref={ref}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              e.preventDefault();
-              onDone();
-            } else if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-              e.preventDefault();
-              save();
-            }
-          }}
-          rows={3}
-          placeholder="Write a note about this message…"
-          className={cn(
-            "w-full resize-y bg-transparent outline-none text-sm font-mono",
-            "border border-border rounded px-2 py-1",
-          )}
-          disabled={busy}
-        />
-        <div className="mt-1 flex items-center gap-2">
-          <div className="text-[10px] text-fg-subtle">
-            ⌘/Ctrl+Enter save · Esc cancel · empty to delete
-          </div>
-          {error && (
-            <div className="text-[10px] text-red-500">{error}</div>
-          )}
-          <div className="ml-auto flex gap-1">
-            <button
-              className="text-xs px-2 py-0.5 rounded hover:bg-surface-2 text-fg-subtle disabled:opacity-50"
-              onClick={onDone}
-              disabled={busy}
-            >
-              Cancel
-            </button>
-            <button
-              className="text-xs px-2 py-0.5 rounded bg-user text-user-fg hover:opacity-90 disabled:opacity-50"
-              onClick={save}
-              disabled={busy}
-            >
-              Save
-            </button>
-          </div>
+        {error && <div className="text-[10px] text-red-500">{error}</div>}
+        <div className="ml-auto flex gap-1">
+          <button
+            className="text-xs px-2 py-0.5 rounded hover:bg-surface-2 text-fg-subtle disabled:opacity-50"
+            onClick={onDone}
+            disabled={busy}
+          >
+            Cancel
+          </button>
+          <button
+            className="text-xs px-2 py-0.5 rounded bg-user text-user-fg hover:opacity-90 disabled:opacity-50"
+            onClick={save}
+            disabled={busy}
+          >
+            Save
+          </button>
         </div>
       </div>
     </div>

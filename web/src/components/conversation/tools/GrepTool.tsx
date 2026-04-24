@@ -27,6 +27,7 @@ export function GrepTool({
   const input = (pair.use.input ?? {}) as Input;
   const text = resultText(pair.result?.content);
   const lines = text ? text.split("\n").filter(Boolean) : [];
+  const hasOpts = input.path || input.glob || input.type || input.output_mode;
   return (
     <ToolShell
       pair={pair}
@@ -34,14 +35,15 @@ export function GrepTool({
       title={<span className="font-mono">{input.pattern ?? "(no pattern)"}</span>}
       rightMeta={lines.length ? <span>{lines.length} hits</span> : null}
       body={
-        <>
-          <div className="text-[11px] text-fg-subtle flex flex-wrap gap-x-3">
-            <span>pattern: <span className="font-mono">{input.pattern}</span></span>
-            {input.path && <span>path: <span className="font-mono">{input.path}</span></span>}
-            {input.glob && <span>glob: <span className="font-mono">{input.glob}</span></span>}
-            {input.type && <span>type: {input.type}</span>}
-            {input.output_mode && <span>mode: {input.output_mode}</span>}
-          </div>
+        <div className="space-y-1.5">
+          {hasOpts && (
+            <div className="text-[11px] text-fg-subtle flex flex-wrap gap-x-3">
+              {input.path && <span>path: <span className="font-mono">{input.path}</span></span>}
+              {input.glob && <span>glob: <span className="font-mono">{input.glob}</span></span>}
+              {input.type && <span>type: {input.type}</span>}
+              {input.output_mode && <span>mode: {input.output_mode}</span>}
+            </div>
+          )}
           {pair.result?.external ? (
             <ExternalResultLoader
               external={pair.result.external}
@@ -51,7 +53,7 @@ export function GrepTool({
           ) : (
             text && <ResultText text={text} />
           )}
-        </>
+        </div>
       }
     />
   );

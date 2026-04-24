@@ -28,13 +28,12 @@ export function GlobTool({
       title={<span className="font-mono">{input.pattern ?? "(no pattern)"}</span>}
       rightMeta={lines.length ? <span>{lines.length} files</span> : null}
       body={
-        <>
-          <div className="text-[11px] text-fg-subtle">
-            pattern: <span className="font-mono">{input.pattern}</span>
-            {input.path && (
-              <span className="ml-3">path: <span className="font-mono">{input.path}</span></span>
-            )}
-          </div>
+        <div className="space-y-1.5">
+          {input.path && (
+            <div className="text-[11px] text-fg-subtle">
+              path: <span className="font-mono">{input.path}</span>
+            </div>
+          )}
           {pair.result?.external ? (
             <ExternalResultLoader
               external={pair.result.external}
@@ -44,7 +43,7 @@ export function GlobTool({
           ) : (
             text && <ResultText text={text} />
           )}
-        </>
+        </div>
       }
     />
   );

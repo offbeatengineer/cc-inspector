@@ -32,7 +32,7 @@ export function ExternalResultLoader({
             setLoading(false);
           }
         }}
-        className="px-2 py-1 rounded bg-surface-2 border border-border hover:bg-surface text-fg-muted"
+        className="px-2 py-1 rounded bg-surface-2 hover:bg-surface text-fg-muted"
       >
         {loading
           ? "Loading…"

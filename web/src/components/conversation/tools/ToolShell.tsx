@@ -1,62 +1,50 @@
 import type { ReactNode } from "react";
-import { useState } from "react";
 import type { ToolPair } from "../groupMessages";
-import { Wrench, AlertTriangle, ChevronRight } from "lucide-react";
+import { Wrench, AlertTriangle } from "lucide-react";
 import { cn } from "../../../lib/cn";
 import { safeStringify } from "../SafeJSON";
+import { PeekBlock } from "../PeekBlock";
 
 interface Props {
   pair: ToolPair;
   title?: ReactNode;
-  summary?: ReactNode;
   body?: ReactNode;
   icon?: ReactNode;
-  defaultOpen?: boolean;
   tone?: "default" | "error";
   rightMeta?: ReactNode;
 }
 
+// ToolShell renders a tool call as a borderless tinted block.
+// The body is always visible, clamped to ~6 rendered lines via PeekBlock so
+// the user can scan tool outputs without expanding every one. Errors get a
+// red-tinted background.
 export function ToolShell({
   pair,
   title,
-  summary,
   body,
   icon,
-  defaultOpen = false,
   tone = "default",
   rightMeta,
 }: Props) {
-  const [open, setOpen] = useState(defaultOpen);
   const isError = tone === "error" || pair.result?.is_error;
   const orphan = !pair.result;
   return (
     <div
       className={cn(
-        "rounded border text-[13px]",
-        isError
-          ? "border-error/40 bg-error/5"
-          : "border-border bg-surface/60"
+        "rounded-md text-[13px]",
+        isError ? "bg-error-bg" : "bg-tool-bg"
       )}
+      style={{ "--peek-fade": isError ? "var(--color-error-bg)" : "var(--color-tool-bg)" } as React.CSSProperties}
     >
-      <button
-        type="button"
-        className="w-full flex items-center gap-2 px-2.5 py-1.5 text-left cursor-pointer hover:bg-surface-2/60 rounded"
-        onClick={() => setOpen(!open)}
-      >
-        <ChevronRight
-          className={cn(
-            "w-3.5 h-3.5 text-fg-subtle transition-transform",
-            open && "rotate-90"
-          )}
-        />
-        <span className="text-fg-subtle">
+      <div className="flex items-center gap-2 px-3 pt-2 pb-1">
+        <span className="text-fg-subtle shrink-0">
           {icon ?? <Wrench className="w-3.5 h-3.5" />}
         </span>
-        <span className="font-medium">{pair.use.name}</span>
+        <span className="font-medium shrink-0">{pair.use.name}</span>
         {title && (
           <span className="min-w-0 truncate text-fg-muted">{title}</span>
         )}
-        <span className="ml-auto flex items-center gap-2 text-[11px] text-fg-subtle">
+        <span className="ml-auto flex items-center gap-2 text-[11px] text-fg-subtle shrink-0">
           {rightMeta}
           {orphan && (
             <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400">
@@ -71,13 +59,12 @@ export function ToolShell({
             </span>
           )}
         </span>
-      </button>
-      {!open && summary && (
-        <div className="px-2.5 pb-1.5 pt-0 text-[12px] text-fg-subtle truncate">
-          {summary}
+      </div>
+      {body && (
+        <div className="px-3 pb-2">
+          <PeekBlock maxLines={6}>{body}</PeekBlock>
         </div>
       )}
-      {open && <div className="px-2.5 pb-2.5 pt-1 space-y-2">{body}</div>}
     </div>
   );
 }
@@ -87,7 +74,7 @@ export function JSONPreview({ value, label }: { value: unknown; label?: string }
   return (
     <div>
       {label && <div className="text-[11px] text-fg-subtle mb-1">{label}</div>}
-      <pre className="text-[12px] font-mono bg-surface-2 border border-border rounded px-2 py-1.5 overflow-x-auto whitespace-pre-wrap">
+      <pre className="text-[12px] font-mono bg-surface-2/60 rounded px-2 py-1.5 overflow-x-auto whitespace-pre-wrap">
         {s}
       </pre>
     </div>
@@ -96,7 +83,7 @@ export function JSONPreview({ value, label }: { value: unknown; label?: string }
 
 export function ResultText({ text }: { text: string }) {
   return (
-    <pre className="text-[12.5px] font-mono bg-surface-2 border border-border rounded px-2 py-1.5 overflow-x-auto whitespace-pre-wrap max-h-[360px] overflow-y-auto">
+    <pre className="text-[12.5px] font-mono bg-surface-2/60 rounded px-2 py-1.5 overflow-x-auto whitespace-pre-wrap">
       {text}
     </pre>
   );
