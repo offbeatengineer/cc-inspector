@@ -1,6 +1,10 @@
 default:
     @just --list
 
+# Point git at the repo's shared hook directory. Run once per clone.
+install-hooks:
+    git config core.hooksPath .githooks
+
 # Run the production-style binary (serves embedded SPA) against the real ~/.claude.
 run *args:
     go run ./cmd/cc-inspector {{args}}
