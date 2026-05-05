@@ -8,6 +8,8 @@ before:
     - sh -c 'cd web && npm ci'
     - sh -c 'cd web && npm run build'
     - sh -c 'rm -rf internal/web/dist && mkdir -p internal/web/dist && cp -r web/dist/* internal/web/dist/'
+    - sh -c 'cd web && npm run build:standalone'
+    - sh -c 'rm -rf internal/web/dist-standalone && mkdir -p internal/web/dist-standalone && cp web/dist-standalone/standalone.html internal/web/dist-standalone/standalone.html'
     - go mod tidy
 
 builds:
