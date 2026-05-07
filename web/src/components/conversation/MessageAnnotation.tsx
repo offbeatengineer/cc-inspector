@@ -85,25 +85,25 @@ function AnnotationView({
   });
 
   return (
-    <div className="mt-2 pl-3 border-l-2 border-accent/60">
+    <div className="mt-2 px-3 py-2 rounded-sm bg-note-bg border border-note-border/40 border-l-4 border-l-note-border shadow-sm">
       <div className="flex items-baseline gap-2 mb-0.5">
-        <div className="text-[10px] uppercase tracking-wide text-accent font-medium">
+        <div className="text-[10px] uppercase tracking-wide text-note-label font-semibold">
           Note
         </div>
-        <div className="text-[10px] text-fg-subtle">
+        <div className="text-[10px] text-note-subtle">
           {formatAbsolute(annotation.updatedAt)}
         </div>
         {!readOnly && (
           <div className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
             <button
-              className="p-0.5 rounded hover:bg-surface-2 text-fg-subtle hover:text-fg"
+              className="p-0.5 rounded hover:bg-note-border/30 text-note-subtle hover:text-note-fg"
               onClick={onEdit}
               title="Edit (c)"
             >
               <Pencil className="w-3 h-3" />
             </button>
             <button
-              className="p-0.5 rounded hover:bg-surface-2 text-fg-subtle hover:text-fg disabled:opacity-50"
+              className="p-0.5 rounded hover:bg-note-border/30 text-note-subtle hover:text-note-fg disabled:opacity-50"
               onClick={() => {
                 if (confirm("Delete this annotation?")) del.mutate();
               }}
@@ -115,7 +115,7 @@ function AnnotationView({
           </div>
         )}
       </div>
-      <div className="whitespace-pre-wrap text-sm text-fg">
+      <div className="whitespace-pre-wrap text-sm text-note-fg">
         {annotation.text}
       </div>
     </div>
@@ -177,8 +177,8 @@ function AnnotationEditor({
   const busy = upsert.isPending || del.isPending;
 
   return (
-    <div className="mt-2 pl-3 border-l-2 border-accent/60">
-      <div className="text-[10px] uppercase tracking-wide text-accent font-medium mb-1">
+    <div className="mt-2 px-3 py-2 rounded-sm bg-note-bg border border-note-border/40 border-l-4 border-l-note-border shadow-sm">
+      <div className="text-[10px] uppercase tracking-wide text-note-label font-semibold mb-1">
         {initialText ? "Edit note" : "New note"}
       </div>
       <textarea
@@ -197,26 +197,26 @@ function AnnotationEditor({
         rows={3}
         placeholder="Write a note about this message…"
         className={cn(
-          "w-full resize-y bg-transparent outline-none text-sm font-mono",
-          "border border-border rounded px-2 py-1",
+          "w-full resize-y bg-transparent outline-none text-sm font-mono text-note-fg placeholder:text-note-subtle",
+          "border border-note-border/50 rounded px-2 py-1",
         )}
         disabled={busy}
       />
       <div className="mt-1 flex items-center gap-2">
-        <div className="text-[10px] text-fg-subtle">
+        <div className="text-[10px] text-note-subtle">
           ⌘/Ctrl+Enter save · Esc cancel · empty to delete
         </div>
         {error && <div className="text-[10px] text-red-500">{error}</div>}
         <div className="ml-auto flex gap-1">
           <button
-            className="text-xs px-2 py-0.5 rounded hover:bg-surface-2 text-fg-subtle disabled:opacity-50"
+            className="text-xs px-2 py-0.5 rounded hover:bg-note-border/30 text-note-subtle disabled:opacity-50"
             onClick={onDone}
             disabled={busy}
           >
             Cancel
           </button>
           <button
-            className="text-xs px-2 py-0.5 rounded bg-user text-user-fg hover:opacity-90 disabled:opacity-50"
+            className="text-xs px-2 py-0.5 rounded bg-note-border text-note-fg hover:opacity-90 disabled:opacity-50"
             onClick={save}
             disabled={busy}
           >

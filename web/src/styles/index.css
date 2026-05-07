@@ -21,6 +21,11 @@
   --color-error: #dc2626;
   --color-error-bg: #fef2f2;
   --color-success: #16a34a;
+  --color-note-bg: #fef9c3;
+  --color-note-border: #eab308;
+  --color-note-fg: #3f2d06;
+  --color-note-label: #854d0e;
+  --color-note-subtle: #a16207;
 
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
@@ -42,6 +47,11 @@
   --color-tool: #3f2d06;
   --color-tool-bg: #131316;
   --color-error-bg: #1f1111;
+  --color-note-bg: #3a2e08;
+  --color-note-border: #a16207;
+  --color-note-fg: #fef3c7;
+  --color-note-label: #fde68a;
+  --color-note-subtle: #d4a017;
 }
 
 html,

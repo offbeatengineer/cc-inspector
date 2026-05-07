@@ -1,8 +1,10 @@
 import { useMemo } from "react";
-import type { Session, Usage } from "../../lib/types";
+import { useQuery } from "@tanstack/react-query";
+import type { AnnotationMap, Session, Usage } from "../../lib/types";
 import { formatAbsolute, formatBytes, formatNumber, truncate } from "../../lib/format";
 import { groupMessages, jumpList } from "../conversation/groupMessages";
 import { useUI } from "../../stores/ui";
+import { api, qk } from "../../lib/api";
 
 export function Inspector({ session }: { session: Session }) {
   const { meta } = session;
@@ -14,6 +16,18 @@ export function Inspector({ session }: { session: Session }) {
 
   const subagents = Object.values(session.subagentSummaries ?? {});
   const scrollToAnchor = useUI((s) => s.scrollToAnchor);
+
+  const annotationsQ = useQuery({
+    queryKey: qk.annotations(meta.projectDir, meta.id),
+    queryFn: () => api.listAnnotations(meta.projectDir, meta.id),
+    staleTime: 0,
+  });
+  const annotations: AnnotationMap = annotationsQ.data ?? {};
+
+  const noteJumps = useMemo(
+    () => buildNoteJumps(items, annotations),
+    [items, annotations],
+  );
 
   return (
     <div className="p-3 space-y-5 text-[12.5px]">
@@ -86,8 +100,46 @@ export function Inspector({ session }: { session: Session }) {
           ))}
         </ul>
       </section>
+
+      {noteJumps.length > 0 && (
+        <section>
+          <SectionHeader>Notes ({noteJumps.length})</SectionHeader>
+          <ul className="space-y-1 max-h-[40vh] overflow-auto">
+            {noteJumps.map((n) => (
+              <li key={n.key}>
+                <button
+                  type="button"
+                  onClick={() => scrollToAnchor?.(n.anchorId)}
+                  className="block w-full text-left rounded px-2 py-1 text-[12px] bg-note-bg/70 hover:bg-note-bg border-l-2 border-note-border text-note-fg"
+                  title={n.text}
+                >
+                  <div className="whitespace-pre-wrap line-clamp-2 leading-snug">
+                    {truncate(n.text, 140)}
+                  </div>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
+}
+
+function buildNoteJumps(
+  items: ReturnType<typeof groupMessages>,
+  annotations: AnnotationMap,
+): { anchorId: string; text: string; key: string }[] {
+  const out: { anchorId: string; text: string; key: string }[] = [];
+  // Walk in display order so the sidebar mirrors the conversation flow.
+  for (const it of items) {
+    const uuid = it.message.uuid;
+    if (!uuid) continue;
+    const ann = annotations[uuid];
+    if (!ann) continue;
+    out.push({ anchorId: it.anchorId, text: ann.text, key: uuid });
+  }
+  return out;
 }
 
 function SectionHeader({ children }: { children: React.ReactNode }) {
